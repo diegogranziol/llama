@@ -18,17 +18,29 @@ from torch import nn
 
 @dataclass
 class ModelArgs:
-    dim: int = 4096
-    n_layers: int = 32
-    n_heads: int = 32
+    # dim: int = 4096
+    # n_layers: int = 32
+    # n_heads: int = 32
+    # n_kv_heads: Optional[int] = None
+    # vocab_size: int = -1  # defined later by tokenizer
+    # multiple_of: int = 256  # make SwiGLU hidden layer size multiple of large power of 2
+    # ffn_dim_multiplier: Optional[float] = None
+    # norm_eps: float = 1e-5
+    #
+    # max_batch_size: int = 32
+    # max_seq_len: int = 2048
+    dim: int = 256
+    n_layers: int = 8
+    n_heads: int = 8
     n_kv_heads: Optional[int] = None
     vocab_size: int = -1  # defined later by tokenizer
-    multiple_of: int = 256  # make SwiGLU hidden layer size multiple of large power of 2
+    multiple_of: int = 128  # make SwiGLU hidden layer size multiple of large power of 2
     ffn_dim_multiplier: Optional[float] = None
     norm_eps: float = 1e-5
 
-    max_batch_size: int = 32
-    max_seq_len: int = 2048
+    max_batch_size: int = 16
+    max_seq_len: int = 512
+
 
 
 class RMSNorm(torch.nn.Module):
@@ -198,7 +210,8 @@ class Attention(nn.Module):
         """
         super().__init__()
         self.n_kv_heads = args.n_heads if args.n_kv_heads is None else args.n_kv_heads
-        model_parallel_size = fs_init.get_model_parallel_world_size()
+        # model_parallel_size = fs_init.get_model_parallel_world_size()
+        model_parallel_size = 1
         self.n_local_heads = args.n_heads // model_parallel_size
         self.n_local_kv_heads = self.n_kv_heads // model_parallel_size
         self.n_rep = self.n_local_heads // self.n_local_kv_heads
